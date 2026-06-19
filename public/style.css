@@ -1,0 +1,38 @@
+body {
+  margin: 0;
+  font-family: monospace;
+  background: #0f111a;
+  color: #00ff9d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  border: 1px solid #00ff9d;
+  padding: 20px;
+  width: 300px;
+  text-align: center;
+}
+
+button {
+  width: 100%;
+  margin: 5px 0;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid #00ff9d;
+  color: #00ff9d;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #00ff9d;
+  color: black;
+}
+
+#status {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.8;
+}
