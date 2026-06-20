@@ -2,7 +2,7 @@
 
 set -e
 
-PROJECT_DIR="$HOME/laravel-app"
+PROJECT_DIR="$HOME/nodecel"
 REPO_URL="https://github.com/pejhar/nodecel.git"
 
 echo "🚀 Starting Laravel Bootstrap..."
@@ -16,10 +16,10 @@ for pkg in php composer git sqlite; do
 done
 
 # اگر پروژه وجود ندارد clone کن
-if [ ! -d "$PROJECT_DIR" ]; then
-    echo "📥 Cloning project..."
+# if [ ! -d "$PROJECT_DIR" ]; then
+#     echo "📥 Cloning project..."
     git clone "$REPO_URL" "$PROJECT_DIR"
-fi
+# fi
 
 cd "$PROJECT_DIR"
 
