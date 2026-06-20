@@ -3,7 +3,7 @@
 set -e
 
 PROJECT_DIR="$HOME/laravel-app"
-REPO_URL="https://github.com/pejhar/whoami.git"
+REPO_URL="https://github.com/pejhar/nodecel.git"
 
 echo "🚀 Starting Laravel Bootstrap..."
 
