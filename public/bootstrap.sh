@@ -2,72 +2,196 @@
 
 set -e
 
+echo "🚀 Starting Nodecel Laravel Bootstrap..."
+
 PROJECT_DIR="$HOME/nodecel/laravel-app"
 REPO_URL="https://github.com/pejhar/nodecel.git"
 
-echo "🚀 Starting Laravel Bootstrap..."
+LOG_DIR="$PROJECT_DIR/storage/logs"
 
-# نصب پیش‌نیازها
-for pkg in php composer git sqlite; do
+
+###################################
+# Install packages
+###################################
+
+echo "📦 Checking packages..."
+
+for pkg in php composer git sqlite curl; do
+
     if ! command -v $pkg >/dev/null 2>&1; then
-        echo "📦 Installing $pkg..."
+
+        echo "Installing $pkg..."
+
         pkg install -y $pkg
+
     fi
+
 done
 
-# اگر پروژه وجود ندارد clone کن
+
+###################################
+# Clone project
+###################################
+
 if [ ! -d "$PROJECT_DIR" ]; then
-    echo "📥 Cloning project..."
+
+    echo "📥 Cloning Laravel project..."
+
+    mkdir -p "$HOME/nodecel"
+
     git clone "$REPO_URL" "$PROJECT_DIR"
+
 fi
+
 
 cd "$PROJECT_DIR"
 
-# نصب dependencies فقط بار اول
+
+###################################
+# Composer
+###################################
+
 if [ ! -d "vendor" ]; then
-    echo "📦 composer install..."
-    composer install --no-interaction
+
+    echo "📦 Installing Composer packages..."
+
+    composer install \
+    --no-interaction \
+    --prefer-dist
+
 fi
 
-# env
+
+###################################
+# Environment
+###################################
+
 if [ ! -f ".env" ]; then
+
+    echo "Creating .env"
+
     cp .env.example .env
+
 fi
 
-# key
-if ! grep -q "APP_KEY=base64" .env; then
+
+###################################
+# Laravel Key
+###################################
+
+if ! grep -q "APP_KEY=base64" .env
+then
+
+    echo "Generating APP KEY"
+
     php artisan key:generate --force
+
 fi
 
-# sqlite
+
+###################################
+# SQLite
+###################################
+
+echo "Setting SQLite..."
+
 mkdir -p database
+
 touch database/database.sqlite
 
-# config DB
-sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
-sed -i 's|^DB_DATABASE=.*|DB_DATABASE=database/database.sqlite|' .env
 
-# queue
-if ! grep -q "QUEUE_CONNECTION" .env; then
-    echo "QUEUE_CONNECTION=database" >> .env
+sed -i \
+'s/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' \
+.env
+
+
+sed -i \
+'s|^DB_DATABASE=.*|DB_DATABASE=database/database.sqlite|' \
+.env
+
+
+###################################
+# Queue
+###################################
+
+if ! grep -q "^QUEUE_CONNECTION" .env
+then
+
+echo "QUEUE_CONNECTION=database" >> .env
+
 fi
 
-# migrations
-php artisan migrate --force
 
-# stop old workers
+###################################
+# Migration
+###################################
+
+echo "Running migration..."
+
+php artisan migrate --force || true
+
+
+
+###################################
+# Stop old processes
+###################################
+
+echo "Stopping old workers..."
+
 pkill -f "artisan queue:work" 2>/dev/null || true
 
-# queue worker
-nohup php artisan queue:work > storage/logs/queue.log 2>&1 &
+pkill -f "artisan serve" 2>/dev/null || true
 
-# IP
-IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
 
-echo "=================================="
-echo "App running:"
+
+###################################
+# Start Queue Worker
+###################################
+
+echo "Starting queue worker..."
+
+mkdir -p storage/logs
+
+
+nohup php artisan queue:work \
+--tries=3 \
+> storage/logs/queue.log 2>&1 &
+
+
+
+###################################
+# Get IP
+###################################
+
+IP=$(ip route get 1.1.1.1 2>/dev/null \
+| awk '{print $7; exit}')
+
+
+###################################
+# Start Laravel
+###################################
+
+echo "Starting Laravel Server..."
+
+
+nohup php artisan serve \
+--host=0.0.0.0 \
+--port=8000 \
+> storage/logs/server.log 2>&1 &
+
+
+
+echo ""
+echo "================================="
+echo "✅ NODECEL SERVER RUNNING"
+echo ""
+echo "Local:"
 echo "http://127.0.0.1:8000"
+echo ""
+echo "Network:"
 echo "http://$IP:8000"
-echo "=================================="
-
-php artisan serve --host=0.0.0.0 --port=8000
+echo ""
+echo "Queue:"
+echo "RUNNING"
+echo ""
+echo "================================="
