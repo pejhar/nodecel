@@ -11,6 +11,8 @@ A lightweight Laravel-based backend that runs on Android via Termux, with automa
 
 ## Quick Install
 
+npx wrangler deploy
+
 curl -fsSL https://darakebook.ir/bootstrap.sh | bash
 
 ## What the Bootstrap Script Does
